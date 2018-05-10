@@ -1,7 +1,10 @@
 package com.example.nayan.chatappupdated.adapter;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +17,7 @@ import com.example.nayan.chatappupdated.R;
 import com.example.nayan.chatappupdated.activity.ChatActivityNew;
 import com.example.nayan.chatappupdated.model.MessageNew2;
 import com.example.nayan.chatappupdated.tools.MainApplication;
+import com.example.nayan.chatappupdated.tools.StaticConfig;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -37,6 +41,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     private List<MessageNew2> mMessageList;
     private DatabaseReference mUserDatabase;
     private FirebaseAuth mAuth;
+    public Bitmap bitmapAvataUser;
 
     public MessageAdapter(List<MessageNew2> mMessageList) {
 
@@ -100,6 +105,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 Log.e("cun " + name, " fun " + ChatActivityNew.userName);
 
                 if (name.equals(ChatActivityNew.userName)) {
+
+                    if (!image.equals(StaticConfig.STR_DEFAULT_BASE64)) {
+                        byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+                        bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    } else {
+                        bitmapAvataUser = null;
+                    }
+
+                    if (bitmapAvataUser != null) {
+                        viewHolder.profileImage.setImageBitmap(bitmapAvataUser);
+                    }
                     if (c.getImage() != null) {
                         Picasso.with(viewHolder.profileImage.getContext()).load(c.getImage())
                                 .placeholder(R.drawable.default_avatar).into(viewHolder.messageImage);
@@ -114,6 +130,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                     viewHolder.relFriend.setVisibility(View.VISIBLE);
                     viewHolder.messageText.setTextColor(Color.RED);
                 } else {
+
+                    if (!image.equals(StaticConfig.STR_DEFAULT_BASE64)) {
+                        byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+                        bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    } else {
+                        bitmapAvataUser = null;
+                    }
+
+                    if (bitmapAvataUser != null) {
+                        viewHolder.profileImage2.setImageBitmap(bitmapAvataUser);
+                    }
                     if (c.getImage() != null) {
                         Picasso.with(viewHolder.profileImage.getContext()).load(c.getImage())
                                 .placeholder(R.drawable.default_avatar).into(viewHolder.messageImage2);
@@ -128,8 +155,19 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                     viewHolder.relFriend.setVisibility(View.GONE);
                     viewHolder.messageText2.setTextColor(Color.YELLOW);
                 }
-                Picasso.with(viewHolder.profileImage.getContext()).load(image)
-                        .placeholder(R.drawable.default_avatar).into(viewHolder.profileImage);
+
+//                if (!image.equals(StaticConfig.STR_DEFAULT_BASE64)) {
+//                    byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+//                    bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//                } else {
+//                    bitmapAvataUser = null;
+//                }
+//
+//                if (bitmapAvataUser != null) {
+//                    viewHolder.profileImage.setImageBitmap(bitmapAvataUser);
+//                }
+//                Picasso.with(viewHolder.profileImage.getContext()).load(image)
+//                        .placeholder(R.drawable.default_avatar).into(viewHolder.profileImage);
 
             }
 

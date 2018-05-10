@@ -2,6 +2,8 @@ package com.example.nayan.chatappupdated.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +14,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +27,7 @@ import com.example.nayan.chatappupdated.R;
 import com.example.nayan.chatappupdated.adapter.MessageAdapter;
 import com.example.nayan.chatappupdated.model.GetTimeAgo;
 import com.example.nayan.chatappupdated.model.MessageNew2;
+import com.example.nayan.chatappupdated.tools.StaticConfig;
 import com.example.nayan.chatappupdated.tools.Utils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -102,6 +106,7 @@ public class ChatActivityNew extends AppCompatActivity {
     private String temp;
 
     private ImageView imgSelect;
+    public Bitmap bitmapAvataUser;
 
 
     @Override
@@ -134,7 +139,7 @@ public class ChatActivityNew extends AppCompatActivity {
 
         actionBar.setCustomView(action_bar_view);
 
-         //---- Custom Action bar Items ----
+        //---- Custom Action bar Items ----
 
         mTitleView = (TextView) findViewById(R.id.custom_bar_title);
         mLastSeenView = (TextView) findViewById(R.id.custom_bar_seen);
@@ -170,9 +175,20 @@ public class ChatActivityNew extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 String online = dataSnapshot.child("online").getValue().toString();
-//                String image = dataSnapshot.child("image").getValue().toString();
+                String image = dataSnapshot.child("avata").getValue().toString();
 
-                if(online.equals("true")) {
+                if (!image.equals(StaticConfig.STR_DEFAULT_BASE64)) {
+                    byte[] decodedString = Base64.decode(image, Base64.DEFAULT);
+                    bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                } else {
+                    bitmapAvataUser = null;
+                }
+
+                if (bitmapAvataUser != null) {
+                    mProfileImage.setImageBitmap(bitmapAvataUser);
+                }
+
+                if (online.equals("true")) {
 
                     mLastSeenView.setText("Online");
 

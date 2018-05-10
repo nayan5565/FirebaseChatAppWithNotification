@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.nayan.chatappupdated.R;
+import com.example.nayan.chatappupdated.fragment.ChatsFragment;
 import com.example.nayan.chatappupdated.fragment.FriendsFragmentNew;
 import com.example.nayan.chatappupdated.fragment.UserProfileFragmentNew;
 import com.example.nayan.chatappupdated.service.FirebaseMsgService;
@@ -60,7 +61,7 @@ public class TabActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tab_activity);
         FirebaseMessaging.getInstance().subscribeToTopic("news");
-        FirebaseMsgService firebaseMessagingService=new FirebaseMsgService();
+        FirebaseMsgService firebaseMessagingService = new FirebaseMsgService();
         firebaseMessagingService.onCreate();
         String token = FirebaseInstanceId.getInstance().getToken();
         Log.e("Token", " " + token);
@@ -84,8 +85,6 @@ public class TabActivity extends AppCompatActivity {
         initTab();
         initFirebase();
     }
-
-
 
 
     private void initFirebase() {
@@ -173,6 +172,7 @@ public class TabActivity extends AppCompatActivity {
     private void setupViewPager(ViewPager viewPager) {
         adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFrag(new FriendsFragmentNew(), STR_FRIEND_FRAGMENT);
+//        adapter.addFrag(new ChatsFragment(), "chat");
 //        adapter.addFrag(new GroupFragment(), STR_GROUP_FRAGMENT);
         adapter.addFrag(new UserProfileFragmentNew(), STR_INFO_FRAGMENT);
 //        floatButton.setOnClickListener(((FriendsFragment) adapter.getItem(0)).onClickFloatButton.getInstance(this));
