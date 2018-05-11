@@ -1,5 +1,6 @@
 package com.example.nayan.chatappupdated.activity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,13 +8,19 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.text.emoji.EmojiCompat;
+import android.support.text.emoji.FontRequestEmojiCompatConfig;
+import android.support.text.emoji.bundled.BundledEmojiCompatConfig;
+import android.support.v4.provider.FontRequest;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,14 +29,18 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.nayan.chatappupdated.R;
 import com.example.nayan.chatappupdated.adapter.MessageAdapter;
 import com.example.nayan.chatappupdated.model.GetTimeAgo;
 import com.example.nayan.chatappupdated.model.MessageNew2;
+import com.example.nayan.chatappupdated.tools.ImageUtils;
+import com.example.nayan.chatappupdated.tools.SharedPreferenceHelper;
 import com.example.nayan.chatappupdated.tools.StaticConfig;
 import com.example.nayan.chatappupdated.tools.Utils;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -45,7 +56,10 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
+import com.yarolegovich.lovelydialog.LovelyInfoDialog;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -69,7 +83,7 @@ public class ChatActivityNew extends AppCompatActivity {
 
     private TextView mTitleView;
     private TextView mLastSeenView;
-    private CircleImageView mProfileImage;
+    private CircleImageView customBarImage;
     private FirebaseAuth mAuth;
 
 
@@ -107,6 +121,7 @@ public class ChatActivityNew extends AppCompatActivity {
 
     private ImageView imgSelect;
     public Bitmap bitmapAvataUser;
+    private String email;
 
 
     @Override
@@ -133,6 +148,7 @@ public class ChatActivityNew extends AppCompatActivity {
 
         mChatUser = getIntent().getStringExtra("user_id");
         String userName = getIntent().getStringExtra("user_name");
+        email = getIntent().getStringExtra("email");
 
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View action_bar_view = inflater.inflate(R.layout.chat_custom_bar, null);
@@ -143,11 +159,48 @@ public class ChatActivityNew extends AppCompatActivity {
 
         mTitleView = (TextView) findViewById(R.id.custom_bar_title);
         mLastSeenView = (TextView) findViewById(R.id.custom_bar_seen);
-        mProfileImage = (CircleImageView) findViewById(R.id.custom_bar_image);
+        customBarImage = (CircleImageView) findViewById(R.id.custom_bar_image);
+
+        customBarImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent profileIntent = new Intent(ChatActivityNew.this, ProfileActivity.class);
+                profileIntent.putExtra("user_id", mChatUser);
+                profileIntent.putExtra("email", email);
+                startActivity(profileIntent);
+            }
+        });
 
         mChatAddBtn = (ImageButton) findViewById(R.id.chat_add_btn);
         mChatSendBtn = (ImageButton) findViewById(R.id.chat_send_btn);
         mChatMessageView = (EditText) findViewById(R.id.chat_message_view);
+        if (mChatMessageView.getText().toString().length() > 0) {
+            mChatSendBtn.setImageResource(R.drawable.ic_send);
+        } else {
+            mChatSendBtn.setImageResource(R.drawable.ic_send_inactive);
+        }
+
+        mChatMessageView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (editable.length() > 0) {
+                    mChatSendBtn.setImageResource(R.drawable.ic_send);
+                } else {
+                    mChatSendBtn.setImageResource(R.drawable.ic_send_inactive);
+                }
+            }
+        });
 
         mAdapter = new MessageAdapter(messagesList);
 
@@ -185,7 +238,7 @@ public class ChatActivityNew extends AppCompatActivity {
                 }
 
                 if (bitmapAvataUser != null) {
-                    mProfileImage.setImageBitmap(bitmapAvataUser);
+                    customBarImage.setImageBitmap(bitmapAvataUser);
                 }
 
                 if (online.equals("true")) {
@@ -267,7 +320,8 @@ public class ChatActivityNew extends AppCompatActivity {
 
                 Intent galleryIntent = new Intent();
                 galleryIntent.setType("image/*");
-                galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+                galleryIntent.setAction(Intent.ACTION_PICK);
+//                galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
 
                 startActivityForResult(Intent.createChooser(galleryIntent, "SELECT IMAGE"), GALLERY_PICK);
 
@@ -292,6 +346,36 @@ public class ChatActivityNew extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mChatMessageView.getText().toString().length() > 0) {
+            mChatSendBtn.setImageResource(R.drawable.ic_send);
+        } else {
+            mChatSendBtn.setImageResource(R.drawable.ic_send_inactive);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mChatMessageView.getText().toString().length() > 0) {
+            mChatSendBtn.setImageResource(R.drawable.ic_send);
+        } else {
+            mChatSendBtn.setImageResource(R.drawable.ic_send_inactive);
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if (mChatMessageView.getText().toString().length() > 0) {
+            mChatSendBtn.setImageResource(R.drawable.ic_send);
+        } else {
+            mChatSendBtn.setImageResource(R.drawable.ic_send_inactive);
+        }
+    }
+
     public void analytics(String id, String name) {
         Bundle bundle = new Bundle();
         bundle.putString(FirebaseAnalytics.Param.ITEM_ID, id);
@@ -299,70 +383,6 @@ public class ChatActivityNew extends AppCompatActivity {
         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "image");
         firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        if (requestCode == GALLERY_PICK && resultCode == RESULT_OK) {
-//
-//            Uri imageUri = data.getData();
-//
-//            final String current_user_ref = "messages/" + mCurrentUserId + "/" + mChatUser;
-//            final String chat_user_ref = "messages/" + mChatUser + "/" + mCurrentUserId;
-//
-//            DatabaseReference user_message_push = mRootRef.child("messages")
-//                    .child(mCurrentUserId).child(mChatUser).push();
-//
-//            final String push_id = user_message_push.getKey();
-//
-//
-//            StorageReference filepath = mImageStorage.child("message_images").child(push_id + ".jpg");
-//
-//            filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-//                @Override
-//                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-//
-//                    if (task.isSuccessful()) {
-//
-//                        String download_url = task.getResult().getDownloadUrl().toString();
-//
-//
-//                        Map messageMap = new HashMap();
-//                        messageMap.put("message", download_url);
-//                        messageMap.put("seen", false);
-//                        messageMap.put("type", "image");
-//                        messageMap.put("time", ServerValue.TIMESTAMP);
-//                        messageMap.put("from", mCurrentUserId);
-//
-//                        Map messageUserMap = new HashMap();
-//                        messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
-//                        messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
-//
-//                        mChatMessageView.setText("");
-//
-//                        mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
-//                            @Override
-//                            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-//
-//                                if (databaseError != null) {
-//
-//                                    Log.d("CHAT_LOG", databaseError.getMessage().toString());
-//
-//                                }
-//
-//                            }
-//                        });
-//
-//
-//                    }
-//
-//                }
-//            });
-//
-//        }
-//
-//    }
 
 
     @Override
@@ -393,6 +413,122 @@ public class ChatActivityNew extends AppCompatActivity {
         }
 
     }
+
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == GALLERY_PICK && resultCode == Activity.RESULT_OK) {
+//            if (data == null) {
+//                return;
+//            }
+//            try {
+//                final Uri selectedImage = data.getData();
+//                InputStream inputStream = ChatActivityNew.this.getContentResolver().openInputStream(data.getData());
+//
+//                Bitmap imgBitmap = BitmapFactory.decodeStream(inputStream);
+//                imgBitmap = ImageUtils.cropToSquare(imgBitmap);
+//                InputStream is = ImageUtils.convertBitmapToInputStream(imgBitmap);
+//                final Bitmap liteImage = ImageUtils.makeImageLite(is,
+//                        imgBitmap.getWidth(), imgBitmap.getHeight(),
+//                        ImageUtils.AVATAR_WIDTH, ImageUtils.AVATAR_HEIGHT);
+//
+//                String imageBase64 = ImageUtils.encodeBase64(liteImage);
+//                Bitmap bitmapAvataUser;
+//                byte[] decodedString = Base64.decode(String.valueOf(selectedImage), Base64.DEFAULT);
+//                bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//                imgSelect.setImageBitmap(bitmapAvataUser);
+//                temp = imageBase64;
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        if (requestCode == GALLERY_PICK && resultCode == Activity.RESULT_OK) {
+//            if (data == null) {
+//                return;
+//            }
+//            try {
+//                InputStream inputStream = ChatActivityNew.this.getContentResolver().openInputStream(data.getData());
+//
+//                Bitmap imgBitmap = BitmapFactory.decodeStream(inputStream);
+//                imgBitmap = ImageUtils.cropToSquare(imgBitmap);
+//                InputStream is = ImageUtils.convertBitmapToInputStream(imgBitmap);
+//                final Bitmap liteImage = ImageUtils.makeImageLite(is,
+//                        imgBitmap.getWidth(), imgBitmap.getHeight(),
+//                        ImageUtils.AVATAR_WIDTH, ImageUtils.AVATAR_HEIGHT);
+//
+//                final String imageBase64 = ImageUtils.encodeBase64(liteImage);
+//
+//                StorageReference filepath = mImageStorage.child("message_images").child(Utils.getToday() + ".jpg");
+//
+//                filepath.putFile(Uri.parse(imageBase64)).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+//
+//                        if (task.isSuccessful()) {
+//                            Toast.makeText(ChatActivityNew.this, "success", Toast.LENGTH_SHORT).show();
+//                            Bitmap bitmapAvataUser;
+//                            byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
+//                            bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//                            imgSelect.setImageBitmap(bitmapAvataUser);
+//
+//                            temp = imageBase64;
+//                            imgSelect.setVisibility(View.VISIBLE);
+////                        imgSelect.setImageURI(selectedImage);
+//
+////                        Picasso.with(ChatActivityNew.this).load(download_url)
+////                                .placeholder(R.drawable.default_avata).into(imgSelect);
+//
+//                        }
+//
+//                    }
+//                });
+//
+//
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+////        if (requestCode == GALLERY_PICK && resultCode == Activity.RESULT_OK) {
+////            if (data != null) {
+////                final Uri selectedImage = data.getData();
+////                StorageReference filepath = mImageStorage.child("message_images").child(Utils.getToday() + ".jpg");
+////
+////                filepath.putFile(selectedImage).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+////                    @Override
+////                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+////
+////                        if (task.isSuccessful()) {
+////                            Toast.makeText(ChatActivityNew.this, "success", Toast.LENGTH_SHORT).show();
+////                            Bitmap bitmapAvataUser;
+////                            String download_url = task.getResult().getDownloadUrl().toString();
+////
+//////                            byte[] decodedString = Base64.decode(download_url, Base64.DEFAULT);
+//////                            bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//////                            imgSelect.setImageBitmap(bitmapAvataUser);
+////
+////                            temp = download_url;
+////                            imgSelect.setVisibility(View.VISIBLE);
+////                        imgSelect.setImageURI(selectedImage);
+////
+//////                        Picasso.with(ChatActivityNew.this).load(download_url)
+//////                                .placeholder(R.drawable.default_avata).into(imgSelect);
+////
+////                        }
+////
+////                    }
+////                });
+////
+////            }
+////        }
+//
+//    }
 
     private void loadMoreMessages() {
 
@@ -516,11 +652,11 @@ public class ChatActivityNew extends AppCompatActivity {
     }
 
     private void sendMessage() {
-//        final long currentDate = Long.parseLong(DateFormat.getDateTimeInstance().format(new Date()));
 
         String message = mChatMessageView.getText().toString();
 
         if (!TextUtils.isEmpty(message) || temp != null) {
+            mChatSendBtn.setImageResource(R.drawable.ic_send);
 
             String current_user_ref = "messages/" + mCurrentUserId + "/" + mChatUser;
             String chat_user_ref = "messages/" + mChatUser + "/" + mCurrentUserId;
@@ -565,6 +701,8 @@ public class ChatActivityNew extends AppCompatActivity {
                 }
             });
 
+        } else {
+            mChatSendBtn.setImageResource(R.drawable.ic_send_inactive);
         }
 
     }

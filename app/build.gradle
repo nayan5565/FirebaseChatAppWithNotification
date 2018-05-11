@@ -36,17 +36,19 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-database:0.4.4'
     implementation 'com.android.support:design:26.1.0'
     implementation 'com.google.code.gson:gson:2.8.2'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'id.zelory:compressor:2.0.0'
-    compile 'com.squareup.okhttp:okhttp:2.7.5'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'id.zelory:compressor:2.0.0'
+    implementation 'com.squareup.okhttp:okhttp:2.7.5'
 
-    compile 'com.liferay:com.liferay.frontend.image.editor.capability.crop:1.0.14'
+    implementation 'com.liferay:com.liferay.frontend.image.editor.capability.crop:1.0.14'
 
     //riv chat
 
-    compile 'de.hdodenhof:circleimageview:2.2.0'
-    compile 'com.yarolegovich:lovely-dialog:1.0.4'
-    compile 'com.android.support:cardview-v7:26.1.0'
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
+    implementation 'com.yarolegovich:lovely-dialog:1.0.4'
+    implementation 'com.android.support:cardview-v7:26.1.0'
+    implementation "com.android.support:support-emoji-bundled:26.1.0"
+    implementation "com.android.support:support-emoji:26.1.0"
 }
 
 

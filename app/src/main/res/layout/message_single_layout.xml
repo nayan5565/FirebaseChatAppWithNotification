@@ -44,7 +44,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
                     android:padding="3dp"
-                    android:text="Message Text"
                     android:textColor="#444444"
                     android:textSize="18sp" />
 
@@ -57,7 +56,6 @@
                     android:layout_marginTop="2dp"
                     android:paddingRight="3dp"
                     android:layout_toEndOf="@+id/message_text_layout"
-                    android:text="00:00"
                     android:textSize="12sp" />
             </RelativeLayout>
 
@@ -126,7 +124,6 @@
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="10dp"
                     android:padding="3dp"
-                    android:text="Message Text"
                     android:textColor="#444444"
                     android:textSize="18sp" />
 
@@ -139,7 +136,6 @@
                     android:layout_marginTop="2dp"
                     android:paddingRight="3dp"
                     android:layout_toEndOf="@+id/message_text_layout2"
-                    android:text="00:00"
                     android:textSize="12sp" />
             </RelativeLayout>
 

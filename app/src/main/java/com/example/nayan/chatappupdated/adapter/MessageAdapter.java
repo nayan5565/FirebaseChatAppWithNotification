@@ -3,6 +3,7 @@ package com.example.nayan.chatappupdated.adapter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Base64;
 import android.util.Log;
@@ -115,8 +116,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
                     if (bitmapAvataUser != null) {
                         viewHolder.profileImage.setImageBitmap(bitmapAvataUser);
+                    } else {
+                        viewHolder.profileImage.setImageResource(R.drawable.default_avatar);
                     }
                     if (c.getImage() != null) {
+//                        Bitmap bitmapAvataUser;
+//                        byte[] decodedString = Base64.decode(c.getImage(), Base64.DEFAULT);
+//                        bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//                        viewHolder.messageImage.setImageBitmap(bitmapAvataUser);
                         Picasso.with(viewHolder.profileImage.getContext()).load(c.getImage())
                                 .placeholder(R.drawable.default_avatar).into(viewHolder.messageImage);
                         viewHolder.messageImage.setVisibility(View.VISIBLE);
@@ -140,8 +147,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
                     if (bitmapAvataUser != null) {
                         viewHolder.profileImage2.setImageBitmap(bitmapAvataUser);
+                    } else {
+                        viewHolder.profileImage.setImageResource(R.drawable.default_avatar);
                     }
                     if (c.getImage() != null) {
+//                        Bitmap bitmapAvataUser;
+//                        byte[] decodedString = Base64.decode(c.getImage(), Base64.DEFAULT);
+//                        bitmapAvataUser = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//                        viewHolder.messageImage2.setImageBitmap(bitmapAvataUser);
                         Picasso.with(viewHolder.profileImage.getContext()).load(c.getImage())
                                 .placeholder(R.drawable.default_avatar).into(viewHolder.messageImage2);
                         viewHolder.messageImage2.setVisibility(View.VISIBLE);
