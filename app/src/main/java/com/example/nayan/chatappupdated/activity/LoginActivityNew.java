@@ -125,13 +125,13 @@ public class LoginActivityNew extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == StaticConfig.REQUEST_CODE_REGISTER && resultCode == RESULT_OK) {
-            authUtils.createUser(data.getStringExtra(StaticConfig.STR_EXTRA_USERNAME), data.getStringExtra(StaticConfig.STR_EXTRA_PASSWORD));
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == StaticConfig.REQUEST_CODE_REGISTER && resultCode == RESULT_OK) {
+//            authUtils.createUser(data.getStringExtra(StaticConfig.STR_EXTRA_USERNAME), data.getStringExtra(StaticConfig.STR_EXTRA_PASSWORD));
+//        }
+//    }
 
     public void clickLogin(View view) {
         userEmail = Utils.getPref("UserEmail", "user");
@@ -219,8 +219,7 @@ public class LoginActivityNew extends AppCompatActivity {
                         public void onFailure(@NonNull Exception e) {
                             waitingDialog.dismiss();
                         }
-                    })
-            ;
+                    });
         }
 
 
@@ -231,6 +230,7 @@ public class LoginActivityNew extends AppCompatActivity {
          * @param password
          */
         void signIn(final String email, String password) {
+            mAuth = FirebaseAuth.getInstance();
             waitingDialog.setIcon(R.drawable.ic_person_low)
                     .setTitle("Login....")
                     .setTopColorRes(R.color.colorPrimary)
@@ -360,10 +360,9 @@ public class LoginActivityNew extends AppCompatActivity {
         }
 
 
-
         void initNewUserInfo() {
             String device_token = FirebaseInstanceId.getInstance().getToken();
-            Log.e("Toke"," " +device_token);
+            Log.e("Toke", " " + device_token);
             User newUser = new User();
             newUser.email = user.getEmail();
             newUser.userStatus = "Hi there I'm using Chat App.";
